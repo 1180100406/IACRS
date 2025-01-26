@@ -130,7 +130,7 @@ parser.add_argument("--save_replay_buffer", action="store_true")
 parser.add_argument("--load", action="store_true")
 parser.add_argument("--load_dir", default="./models/steps/450000", type=str)
 parser.add_argument("--load_algo", type=str)
-parser.add_argument("--log_dir", default="/IARS-master/logs", type=str)
+parser.add_argument("--log_dir", default="home/yuanwenyu/IACRS/logs", type=str)
 parser.add_argument("--load_replay_buffer", action="store_true")
 parser.add_argument("--load_adj_net", default=False, action="store_true")
 

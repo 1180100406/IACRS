@@ -791,9 +791,11 @@ def run_higl(args):
                 'action': 0,
                 'reward': 0,
                 'done': False,
+                'is_success':[],
                 'state_seq': [],
                 'actions_seq': [],
                 'achieved_goal_seq': [],
+                'goal_seq': [],
             })
         action = controller_policy.select_action(state, subgoal)
         action = ctrl_noise.perturb_action(action, -max_action, max_action)
@@ -867,9 +869,11 @@ def run_higl(args):
             'action': action,
             'reward': controller_reward,
             'done': float(ctrl_done),
+            'is_success': [],
             'state_seq': [],
             'actions_seq': [],
             'achieved_goal_seq': [],
+            'goal_seq': [],
         })
         controller_buffer.add(controller_transition)
 

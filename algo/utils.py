@@ -22,7 +22,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # Simple replay buffer
 class ReplayBuffer(object):
     def __init__(self, maxsize=1e6, batch_size=100, reward_func=None, reward_scale=None):
-        self.storage = [[] for _ in range(11)]
+        self.storage = [[] for _ in range(13)]
         self.maxsize = maxsize
         self.next_idx = 0
         self.batch_size = batch_size
@@ -33,9 +33,6 @@ class ReplayBuffer(object):
 
     # Expects tuples of (x, x', ag, g, u, r, d, x_seq, a_seq, ag_seq)
     def add(self, odict):
-        assert list(odict.keys()) == ['state', 'next_state', 'achieved_goal', 'next_achieved_goal',
-                                      'goal', 'action', 'reward',
-                                      'done', 'state_seq', 'actions_seq', 'achieved_goal_seq']
         data = tuple(odict.values())
         self.next_idx = int(self.next_idx)
         if self.next_idx >= len(self.storage[0]):
@@ -62,10 +59,10 @@ class ReplayBuffer(object):
                 ind = np.random.randint(self.last_start, len(self.storage[0]), size=batch_size)
         self.start = start
 
-        x, y, ag, ag_next, g, u, r, d, x_seq, a_seq, ag_seq = [], [], [], [], [], [], [], [], [], [], []
+        x, y, ag, ag_next, g, u, r, d, s, x_seq, a_seq, ag_seq, g_seq = [], [], [], [], [], [], [], [], [], [], [], [], []
 
         for i in ind:
-            X, Y, AG, AG_NEXT, G, U, R, D, obs_seq, acts, AG_seq = (array[i] for array in self.storage)
+            X, Y, AG, AG_NEXT, G, U, R, D, S, obs_seq, acts, AG_seq, G_seq = (array[i] for array in self.storage)
             x.append(np.array(X, copy=False))
             y.append(np.array(Y, copy=False))
             ag.append(np.array(AG, copy=False))
@@ -74,15 +71,17 @@ class ReplayBuffer(object):
             u.append(np.array(U, copy=False))
             r.append(np.array(R, copy=False))
             d.append(np.array(D, copy=False))
+            s.append(np.array(S, copy=False))
 
             # For off-policy goal correction
             x_seq.append(np.array(obs_seq, copy=False))
             a_seq.append(np.array(acts, copy=False))
             ag_seq.append(np.array(AG_seq, copy=False))
+            g_seq.append(np.array(G_seq, copy=False))
 
         return np.array(x), np.array(y), np.array(ag), np.array(ag_next), np.array(g), \
                np.array(u), np.array(r).reshape(-1, 1), np.array(d).reshape(-1, 1), \
-               x_seq, a_seq, ag_seq
+               s, x_seq, a_seq, ag_seq, g_seq
 
     def save(self, file):
         np.savez_compressed(file, idx=np.array([self.next_idx]), x=self.storage[0],

@@ -269,11 +269,12 @@ class Manager(object):
                 if sigma > 1:
                     for i in range(len(ag_seq)-1):
                         distance1 = np.linalg.norm(ag_seq[i+1] - g_seq[i+1])
+                        distance0 = np.linalg.norm(ag_seq[i] - g_seq[i])
                         r += gd(sigmoid(distance1)*sigma, 0, sigma) - gd(sigmoid(distance0)*sigma, 0, sigma)
-                        distance0 = distance1
                 else:
                     for i in range(len(ag_seq)-1):
                         r += s_seq[i] * man_rew_scale
+            r=np.array(r).reshape(-1, 1)
 
             if self.correction:
                 sg = self.goal_relabeling(controller_policy, batch_size, sgorig, xobs_seq, a_seq, ag_seq, g, fkm_obj=fkm_obj, exp_w=exp_w)
@@ -502,7 +503,7 @@ class Controller(object):
     def _get_osrp_loss(self, fkm_obj, manage_replay_buffer, manage_actor, manage_critic, batch_size, sg_scale):
         # x, g, sg
         # Sample replay buffer
-        _curr_state, _, _, _, _dg, _sgorig, _, _, _, _, _ = manage_replay_buffer.sample(batch_size)
+        _curr_state, _, _, _, _dg, _sgorig, _, _, _, _, _, _, _ = manage_replay_buffer.sample(batch_size)
         _curr_state = _curr_state.repeat(100, 0)
         _dg = _dg.repeat(10, 0)
         np.random.shuffle(_dg)
@@ -584,7 +585,7 @@ class Controller(object):
         for it in range(iterations):
             # Sample replay buffer
             if eval == True:
-                x, y, _, _, sg, _, _, _, _, _, _ = replay_buffer.sample(batch_size, start=start_con)
+                x, y, _, _, sg, _, _, _, _, _, _ , _, _= replay_buffer.sample(batch_size, start=start_con)
 
                 state = self.clean_obs(get_tensor(x))
                 sg = get_tensor(sg)
@@ -599,7 +600,7 @@ class Controller(object):
                 avg_act_loss['avg_act_loss'] += act_loss
 
             else:
-                x, y, ag, ag_next, sg, u, r, d, _, _, _ = replay_buffer.sample(batch_size, start=start_con)
+                x, y, ag, ag_next, sg, u, r, d, _, _, _, _, _ = replay_buffer.sample(batch_size, start=start_con)
 
                 next_g = get_tensor(self.subgoal_transition(ag, sg, ag_next))
                 state = self.clean_obs(get_tensor(x))
@@ -771,7 +772,7 @@ class RandomNetworkDistillation(object):
     def train(self, replay_buffer, iterations, batch_size=100):
         for it in range(iterations):
             # Sample replay buffer
-            x, _, ag, _, _, _, _, _, _, _, _ = replay_buffer.sample(batch_size)
+            x, _, ag, _, _, _, _, _, _, _, _, _, _ = replay_buffer.sample(batch_size)
 
             input = x if not self.use_ag_as_input else ag
             input = get_tensor(input)
