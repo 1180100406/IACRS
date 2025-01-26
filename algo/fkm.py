@@ -325,7 +325,7 @@ class FKMInterface:
             return _state_delta
     
     def train(self, manage_replay_buffer, batch_size, epoch_num=None, max_epochs=50):
-        _actions_seq = np.array(manage_replay_buffer.storage[9])
+        _actions_seq = np.array(manage_replay_buffer.storage[10])
         _actions = np.array(_actions_seq)[:, 0]
 
         self.predictor.scaler.fit(np.hstack([manage_replay_buffer.storage[0], _actions]))
@@ -335,9 +335,9 @@ class FKMInterface:
         if len(manage_replay_buffer) <= MAX_SAMPLE_FOR_TRAIN:
             states = np.array(manage_replay_buffer.storage[0])
             next_states = np.array(manage_replay_buffer.storage[1])
-            actions_seq = np.array(manage_replay_buffer.storage[9])
+            actions_seq = np.array(manage_replay_buffer.storage[10])
         else:
-            latest_states, latest_next_states, latest_actions_seq = [manage_replay_buffer.storage[_i][-10000:] for _i in [0, 1, 9]]
+            latest_states, latest_next_states, latest_actions_seq = [manage_replay_buffer.storage[_i][-10000:] for _i in [0, 1, 10]]
             states, next_states, _, _, _, _, _, _, _, _, actions_seq, _, _ = manage_replay_buffer.sample(MAX_SAMPLE_FOR_TRAIN)
             states = np.vstack([latest_states, states])
             next_states = np.vstack([latest_next_states, next_states])
@@ -391,7 +391,7 @@ class FKMInterface:
 
     def eval(self, manage_replay_buffer, batch_size):
         # Sample replay buffer
-        latest_states, latest_next_states, latest_actions_seq = [manage_replay_buffer.storage[_i][-5000:] for _i in [0, 1, 9]]
+        latest_states, latest_next_states, latest_actions_seq = [manage_replay_buffer.storage[_i][-5000:] for _i in [0, 1, 10]]
         states = np.array(latest_states)
         next_states = np.array(latest_next_states)
         actions = np.array([item[0] for item in latest_actions_seq])
