@@ -265,17 +265,19 @@ class Manager(object):
             x, y, ag, ag_next, g, sgorig, r, d, s_seq, xobs_seq, a_seq, ag_seq, g_seq = replay_buffer.sample(batch_size, start=start_man)
 
             if sparse_rew_type == 'gau':
-                r = 0
+                r = np.zeros(batch_size)
                 if sigma > 1:
-                    for i in range(len(ag_seq)-1):
-                        distance1 = np.linalg.norm(ag_seq[i+1] - g_seq[i+1])
-                        distance0 = np.linalg.norm(ag_seq[i] - g_seq[i])
-                        r += gd(sigmoid(distance1)*sigma, 0, sigma) - gd(sigmoid(distance0)*sigma, 0, sigma)
+                    for i in range(batch_size):
+                        for j in range(len(ag_seq[i])-2):
+                            distance1 = np.linalg.norm(ag_seq[i][j+1] - g_seq[i][j+1])
+                            distance0 = np.linalg.norm(ag_seq[i][j] - g_seq[i][j])
+                            r[i] += gd(sigmoid(distance1)*sigma, 0, sigma) - gd(sigmoid(distance0)*sigma, 0, sigma)
                 else:
-                    for i in range(len(ag_seq)-1):
-                        r += s_seq[i] * man_rew_scale
+                    for i in range(batch_size):
+                        for j in range(len(s_seq[i])-1):
+                            r[i] += s_seq[i][j] * man_rew_scale
             r=np.array(r).reshape(-1, 1)
-
+            
             if self.correction:
                 sg = self.goal_relabeling(controller_policy, batch_size, sgorig, xobs_seq, a_seq, ag_seq, g, fkm_obj=fkm_obj, exp_w=exp_w)
             else:
